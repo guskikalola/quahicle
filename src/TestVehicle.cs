@@ -12,7 +12,10 @@ namespace DuckGame.Quahicle
             this.graphic = _sprite;
             this.center = new Vec2(10f, 3f);
             this.collisionOffset = new Vec2(-8f, -3f);
-            this.collisionSize = new Vec2(16f, 9f); ;
+            this.collisionSize = new Vec2(16f, 9f);
+            this.lockV = true;
+
+            this._jumpPower = 20f;
         }
     }
 }

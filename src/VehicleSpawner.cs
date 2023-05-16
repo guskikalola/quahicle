@@ -10,7 +10,7 @@ namespace DuckGame.Quahicle
         private SpriteMap _sprite;
         private VehicleBase _vehicle;
         private bool _spawned = false;
-        private StateBinding _spawnedBinding = new StateBinding("_spawned");
+        public StateBinding _spawnedBinding = new StateBinding("_spawned");
         public Type contains { get; set; }
 
         public VehicleSpawner(float xval, float yval) : base(xval, yval)
