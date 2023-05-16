@@ -1,3 +1,5 @@
+using System;
+
 namespace DuckGame.Quahicle
 {
     public abstract class VehicleBase : PhysicsObject
@@ -17,6 +19,7 @@ namespace DuckGame.Quahicle
         protected bool lockV = false;
         protected float maxHSpeed = 5.0f;
         protected float maxVSpeed = 5.0f;
+        protected float acceleration = 1.0f;
 
 
         protected VehicleBase(float xval, float yval) : base(xval, yval)
@@ -66,6 +69,7 @@ namespace DuckGame.Quahicle
                 return;
 
             this._pilot.moveLock = false;
+            this._pilot.vSpeed += -1f;
         }
 
         public override void Update()
@@ -73,6 +77,17 @@ namespace DuckGame.Quahicle
             base.Update();
             UpdatePilot();
             UpdateInput();
+
+            // Rotate the sprite to match direction
+            if (this.graphic != null)
+            {
+                // float magnitude = (float) Math.Sqrt(Math.Pow(this.position.x,2) + Math.Pow(this.position.y,2));
+                // Vec2 unitVector = new Vec2(this.position.x/magnitude, this.position.y/magnitude);
+                // float radians = (float) Math.Atan2(unitVector.y, unitVector.x);
+                // float angleDegrees = Maths.RadToDeg(radians);
+                // this.angleDegrees = angleDegrees;
+                this.angleDegrees = this.offDir >= (sbyte)0 ? this._directionAngle : 180f - this._directionAngle;
+            }
         }
 
         public virtual void UpdatePilot()
@@ -83,7 +98,13 @@ namespace DuckGame.Quahicle
             if (!this._mounted)
                 return;
 
-            this._pilot.position = this.position + this._cockpitPosition;
+
+            // TODO : Move to a method that calculates absolute cockpit position 
+            float xDir = this.offDir;
+            float yDir = this._directionAngle < 0f ? 1 : -1;
+            Vec2 directionalMult = new Vec2(xDir, yDir);
+
+            this._pilot.position = this.position + this._cockpitPosition * directionalMult;
         }
 
         public virtual void UpdateInput()
@@ -112,23 +133,18 @@ namespace DuckGame.Quahicle
             bool flag3 = false;
             bool flag4 = false;
             bool flag5 = false;
+            // TODO: Fix graphic flipping in the wrong direction when looking left
             if (!this.lockH && ((double)i.leftStick.x > (double)0.4f || i.Down("RIGHT")))
             {
                 flag2 = true;
                 this._pilot.offDir = (sbyte)1;
                 this.offDir = (sbyte)1;
-                this.graphic.flipV = false;
-                this.graphic.flipH = false;
-
             }
             if (!this.lockH && ((double)i.leftStick.x < -(double)0.4f || i.Down("LEFT")))
             {
                 flag3 = true;
                 this._pilot.offDir = (sbyte)-1;
                 this.offDir = (sbyte)-1;
-                this.graphic.flipH = true;
-                // this.graphic.flipV = true;
-
             }
             if (!this.lockV && ((double)i.leftStick.y > (double)0.4f || i.Down("UP")))
                 flag4 = true;
@@ -145,8 +161,8 @@ namespace DuckGame.Quahicle
 
         public virtual void Accelerate()
         {
-            this.hSpeed += (this.offDir >= (sbyte)0 ? 1 : -1) * _speed;
-            this.vSpeed += (this._directionAngle == 0 ? 0 : this._directionAngle > 0 ? 1 : -1) * _speed;
+            this.hSpeed += (this.offDir >= (sbyte)0 ? 1 : -1) * _speed * acceleration;
+            this.vSpeed += (this._directionAngle == 0 ? 0 : this._directionAngle > 0 ? 1 : -1) * _speed * acceleration;
         }
 
         public virtual void Jump()
@@ -168,10 +184,11 @@ namespace DuckGame.Quahicle
         {
             base.UpdatePhysics();
             this.hSpeed = MathHelper.Clamp(this.hSpeed, -this.maxHSpeed, this.maxHSpeed);
-            
+
             // TODO: Search for an alternative to deal with jumpPower. If jumpPower exceeds maxVSpeed then the extra power is rendered useless.
             // by adding the jumpPower to the maxVSpeed this extra power is taken into account but can result in unexpected behaviour.
-            this.vSpeed = MathHelper.Clamp(this.vSpeed, -(this._jumpPower + this.maxVSpeed), this.maxVSpeed); 
+            this.vSpeed = MathHelper.Clamp(this.vSpeed, -(this._jumpPower + this.maxVSpeed), this.maxVSpeed);
         }
+
     }
 }

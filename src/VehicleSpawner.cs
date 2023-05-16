@@ -15,11 +15,13 @@ namespace DuckGame.Quahicle
 
         public VehicleSpawner(float xval, float yval) : base(xval, yval)
         {
-            this._sprite = new SpriteMap("pistol", 18, 10);
+            this._sprite = new SpriteMap(GetPath("sprites/vehicleSpawner"), 16, 16);
             this.graphic = _sprite;
-            this.center = new Vec2(10f, 3f);
-            this.collisionOffset = new Vec2(-8f, -3f);
-            this.collisionSize = new Vec2(16f, 9f);
+            this.center = new Vec2(8f, 10f);
+            this.collisionOffset = new Vec2(-5f, -10f);
+            this.collisionSize = new Vec2(11f, 16f);
+            this.dontCrush = true;
+            this.graphic.color = Color.Gold;
 
             this._editorName = "Vehicle Spawner";
             this.editorTooltip = "A whole vehicle is contained inside!";
@@ -39,8 +41,12 @@ namespace DuckGame.Quahicle
             }
 
             string vehicleName = this.GetVehicle().VehicleName;
+            float offsetX = Graphics.GetStringWidth(vehicleName) / 2;
+            Vec2 posText = this.position + new Vec2(-offsetX, -this.height);
+            Vec2 posSprite = posText + new Vec2(0f, -6f);
+            Graphics.DrawFancyString(vehicleName, posText, Color.White, scale: 0.8f);
+            // Graphics.Draw(this.GetVehicle().graphic, posSprite.x,posSprite.y, 0.2f,0.2f); // TODO: Experimental
 
-            Graphics.DrawFancyString(vehicleName, this.position + new Vec2(0, this.height), Color.White);
         }
 
         public override void OnHoldAction()
@@ -50,6 +56,8 @@ namespace DuckGame.Quahicle
             {
 
                 this._spawned = true;
+                this.graphic.color = Color.White;
+
                 this.SpawnVehicle(this.duck);
 
                 if (this.duck != null)
@@ -98,7 +106,7 @@ namespace DuckGame.Quahicle
             if (isServerForObject)
             {
                 VehicleBase v = this.GetVehicle();
-                v.position = this.position + new Vec2(0,v.height);
+                v.position = this.position + new Vec2(0,-v.height);
                 v.SetPilot(pilot);
                 Level.Add(v);
 
