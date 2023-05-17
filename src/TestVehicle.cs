@@ -7,9 +7,8 @@ namespace DuckGame.Quahicle
         public TestVehicle()
         {
             this._vehicleName = "Test Vehicle";
-            _sprite = new SpriteMap(GetPath("sprites/ducktor"), 82, 46, false);
-            this.graphic = (Sprite)_sprite;
-            this.graphic.angleDegrees = -90f;
+            this._sprite = new SpriteMap(GetPath("sprites/ducktor"), 82, 46, false);
+            this.graphic = (Sprite)this._sprite;
             this.graphic.scale = new Vec2(0.5f, 0.5f);
             this.graphic.center = new Vec2(this.graphic.width / 2, this.graphic.height / 2);
             this.center = new Vec2(41f * this.graphic.scale.x, 26f * this.graphic.scale.y);

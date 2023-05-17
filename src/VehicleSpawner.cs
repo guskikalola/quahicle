@@ -21,7 +21,7 @@ namespace DuckGame.Quahicle
             this.collisionOffset = new Vec2(-5f, -10f);
             this.collisionSize = new Vec2(11f, 16f);
             this.dontCrush = true;
-            this.graphic.color = Color.Gold;
+            this.graphic.color = Color.CadetBlue;
 
             this._editorName = "Vehicle Spawner";
             this.editorTooltip = "A whole vehicle is contained inside!";
@@ -45,7 +45,10 @@ namespace DuckGame.Quahicle
             Vec2 posText = this.position + new Vec2(-offsetX, -this.height);
             Vec2 posSprite = posText + new Vec2(0f, -6f);
             Graphics.DrawFancyString(vehicleName, posText, Color.White, scale: 0.8f);
-            // Graphics.Draw(this.GetVehicle().graphic, posSprite.x,posSprite.y, 0.2f,0.2f); // TODO: Experimental
+            
+            Sprite preview = this.GetVehicle().graphic.Clone();
+            preview.scale = new Vec2(0.2f,0.2f);
+            Graphics.Draw(preview, posSprite.x,posSprite.y); // TODO: Experimental
 
         }
 

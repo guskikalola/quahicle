@@ -12,6 +12,8 @@ namespace DuckGame.Quahicle
         protected Vec2 _cockpitPosition = new Vec2(0, 0);
         protected bool _mounted = false;
         public StateBinding _mountedBinding = new StateBinding("_mounted");
+        protected bool _accelerating = false;
+        public StateBinding _acceleratingBinding = new StateBinding("_accelerating");
         public float _directionAngle = 0f;
         public StateBinding _directionAngleBinding = new StateBinding("_directionAngle", -1, false, false);
         protected float _jumpPower = 0f;
@@ -20,6 +22,7 @@ namespace DuckGame.Quahicle
         protected float maxHSpeed = 5.0f;
         protected float maxVSpeed = 5.0f;
         protected float acceleration = 1.0f;
+        protected bool keepDirectionUnMounted = false;
 
 
         protected VehicleBase(float xval, float yval) : base(xval, yval)
@@ -39,9 +42,29 @@ namespace DuckGame.Quahicle
         public Duck Pilot { get => _pilot; }
         public float Health { get => _health; }
 
+        public Vec2 WorldCockpitPosition // TODO: Take rotation into account when calculation position
+        {
+            get
+            {
+                float xDir = this.offDir;
+                float yDir = 1; // this._directionAngle > 180f ? 1 : -1;
+                Vec2 directionalMult = new Vec2(xDir, yDir);
+                return this.position + this._cockpitPosition * directionalMult;
+            }
+        }
+
+        public Vec2 DirectionVector
+        {
+            get
+            {
+                float rads = Maths.DegToRad(this._directionAngle);
+                return new Vec2(Maths.FastCos(rads), Maths.FastSin(rads));
+            }
+        }
 
         public virtual void SetPilot(Duck d)
         {
+            // TODO: Handle when a pilot takes another vehicle 
             if (this._pilot != null && !this._allowPilotOverride)
                 return;
 
@@ -59,6 +82,12 @@ namespace DuckGame.Quahicle
 
             this._pilot.moveLock = true;
             this._pilot.CancelFlapping();
+            this.OnMount();
+        }
+
+        public virtual void OnMount()
+        {
+
         }
 
         public virtual void UnMount()
@@ -70,6 +99,13 @@ namespace DuckGame.Quahicle
 
             this._pilot.moveLock = false;
             this._pilot.vSpeed += -1f;
+
+            this.OnUnMount();
+        }
+
+        public virtual void OnUnMount()
+        {
+            this._accelerating = false;
         }
 
         public override void Update()
@@ -78,16 +114,14 @@ namespace DuckGame.Quahicle
             UpdatePilot();
             UpdateInput();
 
-            // Rotate the sprite to match direction
-            if (this.graphic != null)
-            {
-                // float magnitude = (float) Math.Sqrt(Math.Pow(this.position.x,2) + Math.Pow(this.position.y,2));
-                // Vec2 unitVector = new Vec2(this.position.x/magnitude, this.position.y/magnitude);
-                // float radians = (float) Math.Atan2(unitVector.y, unitVector.x);
-                // float angleDegrees = Maths.RadToDeg(radians);
-                // this.angleDegrees = angleDegrees;
-                this.angleDegrees = this.offDir >= (sbyte)0 ? this._directionAngle : 180f - this._directionAngle;
-            }
+            // TODO: Rotate the sprite to match direction
+
+            if (this._directionAngle > 90f && this._directionAngle < 270f)
+                this.graphic.flipV = true;
+            else
+                this.graphic.flipV = false;
+
+            this.angleDegrees = this._directionAngle;
         }
 
         public virtual void UpdatePilot()
@@ -98,14 +132,10 @@ namespace DuckGame.Quahicle
             if (!this._mounted)
                 return;
 
-
-            // TODO : Move to a method that calculates absolute cockpit position 
-            float xDir = this.offDir;
-            float yDir = this._directionAngle < 0f ? 1 : -1;
-            Vec2 directionalMult = new Vec2(xDir, yDir);
-
-            this._pilot.position = this.position + this._cockpitPosition * directionalMult;
+            this._pilot.position = this.WorldCockpitPosition;
         }
+
+
 
         public virtual void UpdateInput()
         {
@@ -128,41 +158,77 @@ namespace DuckGame.Quahicle
             if (i.Down("JUMP"))
                 this.Jump();
 
+            if (i.Down("SHOOT"))
+                this.Fire();
+
             // Handle direction
-            bool flag2 = false;
-            bool flag3 = false;
-            bool flag4 = false;
-            bool flag5 = false;
-            // TODO: Fix graphic flipping in the wrong direction when looking left
+            bool right = false;
+            bool left = false;
+            bool up = false;
+            bool down = false;
             if (!this.lockH && ((double)i.leftStick.x > (double)0.4f || i.Down("RIGHT")))
             {
-                flag2 = true;
+                right = true;
                 this._pilot.offDir = (sbyte)1;
-                this.offDir = (sbyte)1;
+                // this.offDir = (sbyte)1;
             }
             if (!this.lockH && ((double)i.leftStick.x < -(double)0.4f || i.Down("LEFT")))
             {
-                flag3 = true;
+                left = true;
                 this._pilot.offDir = (sbyte)-1;
-                this.offDir = (sbyte)-1;
+                // this.offDir = (sbyte)-1;
             }
             if (!this.lockV && ((double)i.leftStick.y > (double)0.4f || i.Down("UP")))
-                flag4 = true;
+                up = true;
             if (!this.lockV && ((double)i.leftStick.y < -(double)0.4f || i.Down("DOWN")))
-                flag5 = true;
+                down = true;
 
-            this._directionAngle = !flag4 ? (!flag5 ? 0.0f : (!(flag3 | flag2) ? 90f : 45f)) : (!(flag3 | flag2) ? -90f : -45f);
+            // this._directionAngle = !flag4 ? (!flag5 ? 0.0f : (!(flag3 | flag2) ? 90f : 45f)) : (!(flag3 | flag2) ? -90f : -45f);
+
+            if (up)
+                this._directionAngle = 270f;
+
+            if (down)
+                this._directionAngle = 90f;
+
+            if (right)
+                this._directionAngle = 0f;
+
+            if (left)
+                this._directionAngle = 180f;
+
+            if (right && down)
+                this._directionAngle = 45f;
+
+            if (right && up)
+                this._directionAngle = 315f;
+
+            if (left && down)
+                this._directionAngle = 135f;
+
+            if (left && up)
+                this._directionAngle = 225f;
+
 
             // Accelerate if any direction key is pressed
-            if (flag2 || flag3 || flag4 || flag5)
+            if (right || left || up || down)
+            {
+                this._accelerating = true;
                 this.Accelerate();
+            }
+            else
+            {
+                this._accelerating = false;
+                if (this._mounted || !this.keepDirectionUnMounted) this._directionAngle = this._pilot.offDir > 0 ? 0f : 180f;
+            }
 
         }
 
         public virtual void Accelerate()
         {
-            this.hSpeed += (this.offDir >= (sbyte)0 ? 1 : -1) * _speed * acceleration;
-            this.vSpeed += (this._directionAngle == 0 ? 0 : this._directionAngle > 0 ? 1 : -1) * _speed * acceleration;
+            Vec2 speedAdd = this.DirectionVector * _speed * acceleration;
+            this.hSpeed += speedAdd.x;
+            this.vSpeed += speedAdd.y;
         }
 
         public virtual void Jump()
@@ -171,6 +237,11 @@ namespace DuckGame.Quahicle
             {
                 this.vSpeed -= this._jumpPower;
             }
+        }
+
+        public virtual void Fire()
+        {
+
         }
 
         public override void Impact(MaterialThing with, ImpactedFrom from, bool solidImpact)
