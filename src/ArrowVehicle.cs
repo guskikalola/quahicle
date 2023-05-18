@@ -15,7 +15,7 @@ namespace DuckGame.Quahicle
         private readonly float boostSpeed = 6f;
         public ArrowVehicle()
         {
-            this._vehicleName = "Arrow Vehicle";
+            this.VehicleName = "Arrow Vehicle";
             this._sprite = new SpriteMap(GetPath("sprites/arrow"), 32, 8, false);
             this.graphic = (Sprite)this._sprite;
             this.graphic.center = new Vec2(this.graphic.width / 2, this.graphic.height / 2);
@@ -23,18 +23,18 @@ namespace DuckGame.Quahicle
             this.collisionOffset = new Vec2(-16f, -3f);
             this.collisionSize = new Vec2(32f, 8f);
 
-            this._cockpitPosition = new Vec2(0, -17f);
+            this.CockpitPosition = new Vec2(0, -17f);
 
-            this._jumpPower = 0f;
-            this.maxHSpeed = this.baseSpeed;
-            this.maxVSpeed = this.baseSpeed;
+            this.JumpPower = 0f;
+            this.MaxHSpeed = this.baseSpeed;
+            this.MaxVSpeed = this.baseSpeed;
 
             this.gravMultiplier = 0f;
         }
 
         public override void Update()
         {
-            if (!this._accelerating || !this._mounted)
+            if (!this.Accelerating || !this.Mounted)
             {
                 this.hSpeed = 0f;
                 this.vSpeed = 0f;
@@ -53,13 +53,13 @@ namespace DuckGame.Quahicle
             if (this._boostTimer <= 0f)
             {
                 this._boostTimer = 0f;
-                this.maxHSpeed = this.baseSpeed;
-                this.maxVSpeed = this.baseSpeed;
+                this.MaxHSpeed = this.baseSpeed;
+                this.MaxVSpeed = this.baseSpeed;
             }
             else
             {
-                this.maxHSpeed = this.boostSpeed;
-                this.maxVSpeed = this.boostSpeed;
+                this.MaxHSpeed = this.boostSpeed;
+                this.MaxVSpeed = this.boostSpeed;
             }
 
             if (this._boostCooldownTimer <= 0f) this._boostCooldownTimer = 0f;
@@ -67,7 +67,7 @@ namespace DuckGame.Quahicle
             base.Update();
 
             if (this._boostTimer <= 0f && this.IsInsideBlock())
-                this._pilot.Kill(new DTCrush(this));
+                this.Pilot.Kill(new DTCrush(this));
 
 
         }
@@ -83,14 +83,14 @@ namespace DuckGame.Quahicle
 
         private bool IsInsideBlock()
         {
-            IPlatform p1 = Level.CheckPoint<IPlatform>(this._pilot.position);
+            IPlatform p1 = Level.CheckPoint<IPlatform>(this.Pilot.position);
             IPlatform p2 = Level.CheckPoint<IPlatform>(this.position);
             return p1 != null && p2 != null;
         }
 
         public override void Impact(MaterialThing with, ImpactedFrom from, bool solidImpact)
         {
-            if (with == this._pilot) return;
+            if (with == this.Pilot) return;
 
             if (this._boostTimer > 0f)
             {

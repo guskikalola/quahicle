@@ -6,7 +6,7 @@ namespace DuckGame.Quahicle
         private SpriteMap _sprite;
         public TestVehicle()
         {
-            this._vehicleName = "Test Vehicle";
+            this.VehicleName = "Test Vehicle";
             this._sprite = new SpriteMap(GetPath("sprites/ducktor"), 82, 46, false);
             this.graphic = (Sprite)this._sprite;
             this.graphic.scale = new Vec2(0.5f, 0.5f);
@@ -14,11 +14,11 @@ namespace DuckGame.Quahicle
             this.center = new Vec2(41f * this.graphic.scale.x, 26f * this.graphic.scale.y);
             this.collisionOffset = new Vec2(-41f * this.graphic.scale.x, -26f * this.graphic.scale.y);
             this.collisionSize = new Vec2(82f * this.graphic.scale.x, 46f * this.graphic.scale.y);
-            this.lockV = false;
+            this.LockV = false;
 
-            this._cockpitPosition = new Vec2(20f * this.graphic.scale.x, 0f * this.graphic.scale.y);
+            this.CockpitPosition = new Vec2(20f * this.graphic.scale.x, 0f * this.graphic.scale.y);
 
-            this._jumpPower = 10f;
+            this.JumpPower = 10f;
         }
     }
 }
