@@ -9,6 +9,7 @@ namespace DuckGame.Quahicle
     {
         private SpriteMap _sprite;
         private VehicleBase _vehicle;
+        public StateBinding _vehicleBinding = new StateBinding("_vehicle");
         private bool _spawned = false;
         public StateBinding _spawnedBinding = new StateBinding("_spawned");
         public Type contains { get; set; }
@@ -36,19 +37,22 @@ namespace DuckGame.Quahicle
 
             if (this.GetVehicle() == null)
             {
-                Graphics.DrawFancyString("Random vehicle", this.position + new Vec2(0, this.height), Color.White);
+                Graphics.DrawFancyString("Random vehicle", this.position + new Vec2(0, -this.height), Color.White);
                 return;
             }
 
-            string vehicleName = this.GetVehicle().VehicleName;
-            float offsetX = Graphics.GetStringWidth(vehicleName) / 2;
-            Vec2 posText = this.position + new Vec2(-offsetX, -this.height);
-            Vec2 posSprite = posText + new Vec2(0f, -6f);
-            Graphics.DrawFancyString(vehicleName, posText, Color.White, scale: 0.8f);
-            
+            // string vehicleName = this.GetVehicle().VehicleName;
+            // float offsetX = Graphics.GetStringWidth(vehicleName) / 2;
+            // Vec2 posText = this.position + new Vec2(-offsetX, -this.height);
+            // Vec2 posSprite = posText + new Vec2(0f, -6f);
+            // Graphics.DrawFancyString(vehicleName, posText, Color.White);
+
+            // TODO : Find how to centre the text properly. Meanwhile only preview is visible.
+
+            Vec2 posSprite = this.position + new Vec2(0f, -this.height - 6f);
             Sprite preview = this.GetVehicle().graphic.Clone();
-            preview.scale = new Vec2(0.2f,0.2f);
-            Graphics.Draw(preview, posSprite.x,posSprite.y); // TODO: Experimental
+            preview.scale = new Vec2(0.2f, 0.2f);
+            Graphics.Draw(preview, posSprite.x, posSprite.y); // TODO: Experimental
 
         }
 
@@ -73,8 +77,10 @@ namespace DuckGame.Quahicle
 
             if (Level.current is DuckGameEditor && this.contains == null) return null;
 
-            if (this._vehicle == null) // No vehicle assigned, then get random 
+            if (this.contains == null) // No vehicle assigned, then get random 
                 this._vehicle = this.GetRandomVehicle();
+            else if (this._vehicle == null)
+                this._vehicle = Editor.CreateThing(contains) as VehicleBase;
 
             return this._vehicle;
         }
@@ -106,10 +112,15 @@ namespace DuckGame.Quahicle
 
         private void SpawnVehicle(Duck pilot)
         {
+            // Unmount from current vehicle
+            VehicleBase prevVehicle = Quahicle.Core.GetCurrentVehicle();
+            if (prevVehicle != null && prevVehicle.Pilot.Equals(pilot) && prevVehicle.Mounted) prevVehicle.UnMount();
+
             if (isServerForObject)
             {
                 VehicleBase v = this.GetVehicle();
-                v.position = this.position + new Vec2(0,-v.height);
+                v.position = this.position + new Vec2(0, -v.height);
+
                 v.SetPilot(pilot);
                 Level.Add(v);
 
@@ -117,12 +128,38 @@ namespace DuckGame.Quahicle
             }
         }
 
+        // TODO: Fix this setting not affecting spawned vehicle nor being saved
+        // This field is not being serialized, figure out how to do that
         public override ContextMenu GetContextMenu()
         {
             FieldBinding binding = new FieldBinding(this, "contains");
             EditorGroupMenu obj = base.GetContextMenu() as EditorGroupMenu;
             obj.InitializeGroups(new EditorGroup(typeof(VehicleBase)), binding);
             return obj;
+        }
+
+        public override string GetDetailsString()
+        {
+            string containString = "EMPTY";
+            if (contains != null)
+            {
+                containString = contains.Name;
+            }
+            if (contains == null)
+            {
+                return base.GetDetailsString();
+            }
+            return base.GetDetailsString() + "Contains: " + containString;
+        }
+
+        public override void DrawHoverInfo()
+        {
+            string containString = "EMPTY";
+            if (contains != null)
+            {
+                containString = contains.Name;
+            }
+            Graphics.DrawString(containString, position + new Vec2((0f - Graphics.GetStringWidth(containString)) / 2f, -16f), Color.White, 0.9f);
         }
     }
 }

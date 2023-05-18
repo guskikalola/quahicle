@@ -52,21 +52,25 @@ namespace DuckGame.Quahicle
             return duck;
         }
 
+        public VehicleBase GetVehicleOf(Duck d)
+        {
+            List<Thing> things = Level.current.things.ToList();
+            Thing match = things.Find(t =>
+            {
+                VehicleBase v = t as VehicleBase;
+                if (v == null || v.Pilot == null) return false;
+                return v.Pilot.Equals(d);
+            });
+            return (match as VehicleBase);
+        }
+
         public VehicleBase GetCurrentVehicle()
         {
             Duck duck = this.GetCurrentDuck();
             if (duck == null)
                 return null;
 
-            List<Thing> things = Level.current.things.ToList();
-            Thing match = things.Find(t =>
-            {
-                VehicleBase v = t as VehicleBase;
-                if (v == null) return false;
-                return v.Pilot.Equals(duck);
-            });
-
-            return (match as VehicleBase);
+            return this.GetVehicleOf(duck);
         }
     }
 }

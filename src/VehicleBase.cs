@@ -6,7 +6,6 @@ namespace DuckGame.Quahicle
         public string VehicleName { get; protected set; } = "Unnamed Vehicle";
         public float Speed { get; protected set; } = 1.0f;
         public Duck Pilot { get; protected set; } = null;
-        public bool AllowPilotOverride { get; protected set; } = false;
         public Vec2 CockpitPosition { get; protected set; } = new Vec2(0, 0);
         public bool Mounted { get; protected set; } = false;
         public StateBinding MountedBinding = new StateBinding("_mounted");
@@ -21,6 +20,9 @@ namespace DuckGame.Quahicle
         public float MaxVSpeed { get; protected set; } = 5.0f;
         public float AccelerationMul { get; protected set; } = 1.0f;
         public bool KeepDirectionUnMounted { get; protected set; } = false;
+        public float FireCooldown { get; protected set; } = 30f;
+        public float FireCooldownTimer { get; protected set; } = 0f;
+        public StateBinding boostCooldownTimerBinding = new StateBinding("FireCooldownTimer");
         public IVehicleHUD VehicleHUD;
 
         protected BitmapFont TargetFont;
@@ -62,13 +64,29 @@ namespace DuckGame.Quahicle
 
         public virtual void SetPilot(Duck d)
         {
-            // TODO: Handle when a pilot takes another vehicle 
-            if (this.Pilot != null && !this.AllowPilotOverride)
+            // Do not allow to override the current pilot, first it has to be set to null 
+            if (d != null && this.Pilot != null)
                 return;
 
-            this.Pilot = d;
+            if (d == null) { this.Pilot = d; return; }; // Stop recursivity by doing this
 
-            d.Fondle(this);
+            // Remove pilot from previous vehicle
+            // Because every peer will call this, must check vehicle pilot is equal to d. this avoid unmounting other ducks
+            // Only allow to take ownership over other vehicle if unmounted from previous one
+            VehicleBase prevVehicle = Quahicle.Core.GetCurrentVehicle();
+            if (prevVehicle != null && prevVehicle.Pilot.Equals(d) && !prevVehicle.Mounted)
+            {
+                prevVehicle.SetPilot(null);
+                this.Pilot = d;
+                d.Fondle(this);
+            }
+            else if (prevVehicle == null)
+            {
+                this.Pilot = d;
+                d.Fondle(this);
+            }
+
+
         }
 
         public virtual void Mount()
@@ -106,18 +124,41 @@ namespace DuckGame.Quahicle
             this.Accelerating = false;
         }
 
+        public Duck GetCandidateDuck()
+        {
+            return Level.CheckCircle<Duck>(this.position, 15f);
+        }
+
         public override void Update()
         {
             base.Update();
+
+            // Search for pilot if none
+            if (this.Pilot == null)
+            {
+                Duck candidate = this.GetCandidateDuck();
+                if (candidate != null && candidate.inputProfile.Down("QUACK"))
+                    this.SetPilot(candidate);
+            }
+
             UpdatePilot();
             UpdateInput();
 
+            // Flip graphic to match direction and prevent rendering upside down
             if (this.DirectionAngle > 90f && this.DirectionAngle < 270f)
                 this.graphic.flipV = true;
             else
                 this.graphic.flipV = false;
 
+            // Update current vehicle's angle with direction angle
             this.angleDegrees = this.DirectionAngle;
+
+            // Handle fire cooldown timer
+            if (this.FireCooldownTimer > 0f)
+                this.FireCooldownTimer -= 0.03f;
+
+            if (this.FireCooldownTimer <= 0f) this.FireCooldownTimer = 0f;
+
         }
 
         public virtual void UpdatePilot()
@@ -133,9 +174,9 @@ namespace DuckGame.Quahicle
 
         public virtual bool CanMount()
         {
-            if(this.Pilot == null || this.Mounted) return false;
+            if (this.Pilot == null || this.Mounted) return false;
             else return this.Pilot.Distance(this) < 15.0f;
-        } 
+        }
 
 
         public virtual void UpdateInput()
@@ -237,6 +278,15 @@ namespace DuckGame.Quahicle
 
         public virtual void Fire()
         {
+            if (this.FireCooldownTimer <= 0f)
+            {
+                this.FireCooldownTimer = this.FireCooldown;
+                this.OnFire();
+            }
+        }
+
+        public virtual void OnFire()
+        {
 
         }
 
@@ -260,11 +310,18 @@ namespace DuckGame.Quahicle
         public override void Draw()
         {
             base.Draw();
-            if (this.Pilot == null || !isLocal)
+            Graphics.DrawCircle(this.position, 15f, Color.White);
+            if (!isLocal)
                 return;
             // Draw hint to mount the vehicle if unmounted and near it
-            if(this.CanMount())
-                this.TargetFont.Draw("@QUACK@", this.position - new Vec2(6f, this.height), Color.White, input: this.Pilot.inputProfile);
+            Duck d = this.Pilot == null ? this.GetCandidateDuck() : this.Pilot; // If no pilot, then default to closest duck
+            VehicleBase curVehicle = Quahicle.Core.GetVehicleOf(d);
+            bool mountedInOtherVehicle = false;
+
+            if(curVehicle != null && curVehicle.Mounted) mountedInOtherVehicle = true; 
+
+            if (!mountedInOtherVehicle && d != null && (this.Pilot == null || this.CanMount()))
+                this.TargetFont.Draw("@QUACK@", this.position - new Vec2(6f, this.height), Color.White, input: d.inputProfile);
         }
     }
 }

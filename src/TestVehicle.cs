@@ -16,6 +16,8 @@ namespace DuckGame.Quahicle
             this.collisionSize = new Vec2(82f * this.graphic.scale.x, 46f * this.graphic.scale.y);
             this.LockV = false;
 
+            this.FireCooldown = 0f;
+
             this.CockpitPosition = new Vec2(20f * this.graphic.scale.x, 0f * this.graphic.scale.y);
 
             this.JumpPower = 10f;

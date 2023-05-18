@@ -4,11 +4,8 @@ namespace DuckGame.Quahicle
     public class ArrowVehicle : VehicleBase
     {
         private SpriteMap _sprite;
-        private float _boostCooldown = 30f;
         private float _boostDuration = 5f;
-        private float _boostCooldownTimer = 0f;
         private float _boostTimer = 0f;
-        public StateBinding boostCooldownTimerBinding = new StateBinding("_boostCooldownTimer");
         public StateBinding boostTimerBinding = new StateBinding("_boostTimer");
 
         private readonly float baseSpeed = 2f;
@@ -30,6 +27,8 @@ namespace DuckGame.Quahicle
             this.MaxVSpeed = this.baseSpeed;
 
             this.gravMultiplier = 0f;
+
+            this.FireCooldownTimer = this.FireCooldown;
         }
 
         public override void Update()
@@ -47,9 +46,6 @@ namespace DuckGame.Quahicle
             }
             else this.graphic.color = Color.White;
 
-            if (this._boostCooldownTimer > 0f)
-                this._boostCooldownTimer -= 0.03f;
-
             if (this._boostTimer <= 0f)
             {
                 this._boostTimer = 0f;
@@ -62,9 +58,10 @@ namespace DuckGame.Quahicle
                 this.MaxVSpeed = this.boostSpeed;
             }
 
-            if (this._boostCooldownTimer <= 0f) this._boostCooldownTimer = 0f;
 
             base.Update();
+
+            if(this.Pilot == null) return; // Prevent checking when pilot is null
 
             if (this._boostTimer <= 0f && this.IsInsideBlock())
                 this.Pilot.Kill(new DTCrush(this));
@@ -72,13 +69,9 @@ namespace DuckGame.Quahicle
 
         }
 
-        public override void Fire()
+        public override void OnFire()
         {
-            if (this._boostCooldownTimer == 0)
-            {
-                this._boostTimer = this._boostDuration;
-                this._boostCooldownTimer = this._boostCooldown;
-            }
+            this._boostTimer = this._boostDuration;
         }
 
         private bool IsInsideBlock()

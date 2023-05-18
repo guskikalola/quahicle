@@ -49,6 +49,29 @@ namespace DuckGame.Quahicle
         public void DrawVehicleStatus()
         {
             if (!this._vehicle.Mounted) return;
+            // Vehicle health
+
+            // Vehicle fire cooldown
+            float cd = this._vehicle.FireCooldownTimer;
+            float cdMax = this._vehicle.FireCooldown;
+            if (cdMax == 0) cdMax = 1;
+            float perc = cd / cdMax;
+            if (cd > 0f)
+            {
+                float centreX = MonoMain.screenWidth / 2;
+                float centreY = MonoMain.screenHeight / 2;
+
+                string cooldownTxt = "Recharging...";
+                float txtWidth = _font.GetWidth(cooldownTxt);
+                _font.Draw(cooldownTxt, new Vec2(centreX, centreY) + new Vec2(-txtWidth/2,-15f), Color.White, input: Quahicle.Core.GetCurrentDuck().inputProfile);
+
+                Vec2 offset1 = new Vec2(-txtWidth, 5f);
+                Vec2 offset2 = new Vec2(txtWidth, -5f);
+                // Cooldown bar outline 
+                Graphics.DrawRect(new Vec2(centreX, centreY) + offset1, new Vec2(centreX, centreY) + offset2, Color.White, filled: false);
+                // Cooldown bar filling ( goes from 100% width to 0% width of the bar )
+                Graphics.DrawRect(new Vec2(centreX, centreY) + offset1, new Vec2(centreX + offset1.x, centreY) + offset2 * new Vec2(2*perc, 1), Color.White, filled: true);
+            }
 
         }
     }
