@@ -56,7 +56,6 @@ namespace DuckGame.Quahicle
             this.isStatic = true;
             this.dontCrush = true;
             this.alpha = 0.99f;
-            this.VehicleHUD = new BasicVehicleHUD(this);
 
             this.TargetFont = new BitmapFont("smallFont", 4, 3);
         }

@@ -10,7 +10,7 @@ namespace DuckGame.Quahicle
 
         private readonly float baseSpeed = 2f;
         private readonly float boostSpeed = 6f;
-        public ArrowVehicle()
+        public ArrowVehicle() : base()
         {
             this.VehicleName = "Arrow Vehicle";
             this._sprite = new SpriteMap(GetPath("sprites/arrow"), 32, 8, false);
@@ -31,6 +31,8 @@ namespace DuckGame.Quahicle
             this.FireCooldown = 10f;
 
             this.FireCooldownTimer = this.FireCooldown;
+
+            this.VehicleHUD = new BasicVehicleHUD(this);
         }
 
         public override void Update()

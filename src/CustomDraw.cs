@@ -55,6 +55,7 @@ namespace DuckGame.Quahicle
         public void DrawHUD(VehicleBase vehicle)
         {
             IVehicleHUD HUD = vehicle.VehicleHUD;
+            if (HUD == null) return;
 
             Graphics.screen.Begin(SpriteSortMode.BackToFront, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Resolution.getTransformationMatrix());
             HUD.DrawPilotStatus();

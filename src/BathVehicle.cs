@@ -10,7 +10,7 @@ namespace DuckGame.Quahicle
             SpriteMap _sprite;
             this.VehicleName = "Turbo Bathtub";
             _sprite = new SpriteMap(GetPath("sprites/bath"), 64, 64);
-            _sprite.AddAnimation("default", 0.5f, true, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+            _sprite.AddAnimation("default", 0.3f, true, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
             _sprite.SetAnimation("default");
             this.graphic = _sprite;
             this.graphic.center = new Vec2(this.graphic.width / 2, this.graphic.height / 2);
@@ -27,6 +27,8 @@ namespace DuckGame.Quahicle
             this.MaxVSpeed = 10f;
 
             this.MountingDistance = 20f;
+
+            this.VehicleHUD = new BasicVehicleHUD(this);
 
         }
 
@@ -57,11 +59,11 @@ namespace DuckGame.Quahicle
                 if (!r._duck.dead) r.Unragdoll();
             }
 
-            if(this.Accelerating) {
-                Vec2 pos = this.position + new Vec2(0, (this.height/2));
-                Spark s = Spark.New(pos.x,pos.y,this.DirectionVector,0.001f);
-                if(isServerForObject)
-                    Level.Add(s);
+            if (this.Accelerating && this.grounded)
+            {
+                Vec2 pos = this.position + new Vec2(0, (this.height / 2));
+                Spark s = Spark.New(pos.x, pos.y, this.DirectionVector, 0.001f);
+                Level.Add(s);
             }
         }
 
@@ -78,7 +80,8 @@ namespace DuckGame.Quahicle
             base.Impact(with, from, solidImpact);
         }
 
-        public override void Draw() {
+        public override void Draw()
+        {
             base.Draw();
         }
     }
