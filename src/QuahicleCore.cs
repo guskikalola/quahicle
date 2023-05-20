@@ -72,5 +72,21 @@ namespace DuckGame.Quahicle
 
             return this.GetVehicleOf(duck);
         }
+
+        public void RemoveFromEveryVehicle(Duck d)
+        {
+            List<Thing> things = Level.current.things.ToList();
+            List<Thing> match = things.FindAll(t =>
+            {
+                VehicleBase v = t as VehicleBase;
+                if (v == null || v.Pilot == null) return false;
+                return v.Pilot.Equals(d);
+            });
+
+            match.ForEach(m => {
+                VehicleBase vehicle = m as VehicleBase;
+                if(vehicle != null) vehicle.RemovePilot();
+            });
+        }
     }
 }

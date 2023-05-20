@@ -46,15 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\ArrowVehicle.cs" />
-    <Compile Include="src\BasicVehicleHUD.cs" />
-    <Compile Include="src\CustomDraw.cs" />
-    <Compile Include="src\IVehicleHUD.cs" />
-    <Compile Include="src\Quahicle.cs" />
-    <Compile Include="src\QuahicleCore.cs" />
-    <Compile Include="src\TestVehicle.cs" />
-    <Compile Include="src\VehicleBase.cs" />
-    <Compile Include="src\VehicleSpawner.cs" />
+    <Compile Include="src\*" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

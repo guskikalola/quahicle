@@ -28,6 +28,8 @@ namespace DuckGame.Quahicle
 
             this.gravMultiplier = 0f;
 
+            this.FireCooldown = 10f;
+
             this.FireCooldownTimer = this.FireCooldown;
         }
 
@@ -61,12 +63,8 @@ namespace DuckGame.Quahicle
 
             base.Update();
 
-            if(this.Pilot == null) return; // Prevent checking when pilot is null
-
-            if (this._boostTimer <= 0f && this.IsInsideBlock())
+            if (this.Pilot != null && this._boostTimer <= 0f && this.IsInsideBlock())
                 this.Pilot.Kill(new DTCrush(this));
-
-
         }
 
         public override void OnFire()
@@ -91,9 +89,7 @@ namespace DuckGame.Quahicle
 
                 Duck d = with as Duck;
                 if (d != null)
-                {
                     d.Kill(new DTImpale(this));
-                }
             }
 
             base.Impact(with, from, solidImpact);
