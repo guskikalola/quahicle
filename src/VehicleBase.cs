@@ -2,33 +2,56 @@ namespace DuckGame.Quahicle
 {
     public abstract class VehicleBase : PhysicsObject
     {
-        public float Health { get; protected set; } = 1.0f;
-        public string VehicleName { get; protected set; } = "Unnamed Vehicle";
-        public float Speed { get; protected set; } = 1.0f;
-        public Duck Pilot { get; protected set; } = null;
-        public Vec2 CockpitPosition { get; protected set; } = new Vec2(0, 0);
-        public bool Mounted { get; protected set; } = false;
-        public StateBinding MountedBinding = new StateBinding("_mounted");
-        public bool Accelerating { get; protected set; } = false;
-        public StateBinding AcceleratingBinding = new StateBinding("_accelerating");
-        public float DirectionAngle { get; protected set; } = 0f;
-        public StateBinding DirectionAngleBinding = new StateBinding("_directionAngle", -1, false, false);
-        public float JumpPower { get; protected set; } = 0f;
-        public bool LockH { get; protected set; } = false;
-        public bool LockV { get; protected set; } = false;
-        public float MaxHSpeed { get; protected set; } = 5.0f;
-        public float MaxVSpeed { get; protected set; } = 5.0f;
-        public float AccelerationMul { get; protected set; } = 1.0f;
-        public bool KeepDirectionUnMounted { get; protected set; } = false;
-        public float FireCooldown { get; protected set; } = 30f;
-        public float FireCooldownTimer { get; protected set; } = 0f;
+        public float Health { get; protected set; }
+        public string VehicleName { get; protected set; }
+        public float Speed { get; protected set; }
+        public Duck Pilot { get; protected set; }
+        public StateBinding PilotBinding = new StateBinding("Pilot");
+        public Vec2 CockpitPosition { get; protected set; }
+        public bool Mounted { get; protected set; }
+        public StateBinding MountedBinding = new StateBinding("Mounted");
+        public bool Accelerating { get; protected set; }
+        public StateBinding AcceleratingBinding = new StateBinding("Accelerating");
+        public float DirectionAngle { get; protected set; }
+        public StateBinding DirectionAngleBinding = new StateBinding("DirectionAngle", -1, false, false);
+        public float JumpPower { get; protected set; }
+        public bool LockH { get; protected set; }
+        public bool LockV { get; protected set; }
+        public float MaxHSpeed { get; protected set; }
+        public float MaxVSpeed { get; protected set; }
+        public float AccelerationMul { get; protected set; }
+        public bool KeepDirectionUnMounted { get; protected set; }
+        public float FireCooldown { get; protected set; }
+        public float FireCooldownTimer { get; protected set; }
+        public bool DeathControl { get; protected set; }
         public StateBinding boostCooldownTimerBinding = new StateBinding("FireCooldownTimer");
         public IVehicleHUD VehicleHUD;
+
 
         protected BitmapFont TargetFont;
 
         protected VehicleBase(float xval, float yval) : base(xval, yval)
         {
+
+            this.Health = 1f;
+            this.VehicleName = "Vehicle Base";
+            this.Speed = 1f;
+            this.Pilot = null;
+            this.CockpitPosition = new Vec2(0, 0);
+            this.Mounted = false;
+            this.Accelerating = false;
+            this.DirectionAngle = 0f;
+            this.JumpPower = 0f;
+            this.LockH = false;
+            this.LockV = false;
+            this.MaxHSpeed = 5f;
+            this.MaxVSpeed = 5f;
+            this.AccelerationMul = 0.5f;
+            this.KeepDirectionUnMounted = false;
+            this.FireCooldown = 10f;
+            this.FireCooldownTimer = 0f;
+            this.DeathControl = false;
+
             this.layer = Layer.Blocks;
             this.isStatic = true;
             this.dontCrush = true;
@@ -69,21 +92,19 @@ namespace DuckGame.Quahicle
                 return;
 
             if (d == null) { this.Pilot = d; return; }; // Stop recursivity by doing this
-
+            // TODO: Extract this functionality to remove the recursivity issue
             // Remove pilot from previous vehicle
-            // Because every peer will call this, must check vehicle pilot is equal to d. this avoid unmounting other ducks
-            // Only allow to take ownership over other vehicle if unmounted from previous one
-            VehicleBase prevVehicle = Quahicle.Core.GetCurrentVehicle();
-            if (prevVehicle != null && prevVehicle.Pilot.Equals(d) && !prevVehicle.Mounted)
+            VehicleBase prevVehicle = Quahicle.Core.GetVehicleOf(d);
+            if (prevVehicle != null && !prevVehicle.Mounted)
             {
                 prevVehicle.SetPilot(null);
                 this.Pilot = d;
-                d.Fondle(this);
+                Thing.Fondle(this, d.connection);
             }
             else if (prevVehicle == null)
             {
                 this.Pilot = d;
-                d.Fondle(this);
+                Thing.Fondle(this, d.connection);
             }
 
 
@@ -93,6 +114,9 @@ namespace DuckGame.Quahicle
         {
             if (this.Pilot == null || this.Pilot.dead)
                 return;
+
+
+            Thing.Fondle(this, this.Pilot.connection);
 
             this.Mounted = true;
 
@@ -163,11 +187,14 @@ namespace DuckGame.Quahicle
 
         public virtual void UpdatePilot()
         {
-            if (this.Pilot == null || !this.Pilot.isServerForObject)
+            if (this.Pilot == null || !this.isServerForObject)
                 return;
 
             if (!this.Mounted)
                 return;
+
+            this.Pilot.vSpeed = 0f;
+            this.Pilot.hSpeed = 0f;
 
             this.Pilot.position = this.WorldCockpitPosition;
         }
@@ -181,11 +208,14 @@ namespace DuckGame.Quahicle
 
         public virtual void UpdateInput()
         {
-            if (this.Pilot == null || !isServerForObject)
+            if (this.Pilot == null)
+                return;
+
+            if (this.Pilot.dead && !this.DeathControl)
                 return;
 
             InputProfile i = this.Pilot.inputProfile;
-            if (i == null)
+            if (i == null || !this.Pilot.Equals(DuckNetwork.localProfile.duck))
                 return;
 
             if (i.Down("QUACK") && this.CanMount())
@@ -310,15 +340,15 @@ namespace DuckGame.Quahicle
         public override void Draw()
         {
             base.Draw();
-            Graphics.DrawCircle(this.position, 15f, Color.White);
-            if (!isLocal)
-                return;
+
             // Draw hint to mount the vehicle if unmounted and near it
             Duck d = this.Pilot == null ? this.GetCandidateDuck() : this.Pilot; // If no pilot, then default to closest duck
             VehicleBase curVehicle = Quahicle.Core.GetVehicleOf(d);
             bool mountedInOtherVehicle = false;
 
-            if(curVehicle != null && curVehicle.Mounted) mountedInOtherVehicle = true; 
+            if(d == null || !d.isLocal) return;
+
+            if (curVehicle != null && curVehicle.Mounted) mountedInOtherVehicle = true;
 
             if (!mountedInOtherVehicle && d != null && (this.Pilot == null || this.CanMount()))
                 this.TargetFont.Draw("@QUACK@", this.position - new Vec2(6f, this.height), Color.White, input: d.inputProfile);

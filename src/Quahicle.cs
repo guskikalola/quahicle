@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: AssemblyDescription("Quack + Vehicle: Vehicles in Duckgame!")]
 
 // The mod's version
-[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.1.0")]
 
 namespace DuckGame.Quahicle
 {
@@ -38,14 +38,14 @@ namespace DuckGame.Quahicle
             base.OnPostInitialize();
         }
 
-        public static QuahicleCore Core { get => QuahicleCore.Instance; }
+        public static QuahicleCore Core { get { return QuahicleCore.Instance; } }
 
         protected override void OnStart()
         {
             base.OnStart();
-			QuahicleCore core = QuahicleCore.Instance;
-			if (core != null)
-				DevConsole.Log("[Quahicle] QuahicleCore instance created!");
+            QuahicleCore core = QuahicleCore.Instance;
+            if (core != null)
+                DevConsole.Log("[Quahicle] QuahicleCore instance created!");
         }
     }
 }

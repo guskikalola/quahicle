@@ -7,8 +7,8 @@
     <ProjectGuid>{B07BDC3C-3770-4A07-90D8-5C2A68E2172B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MyMod</RootNamespace>
-    <AssemblyName>MyMod</AssemblyName>
+    <RootNamespace>DuckGame.Quahicle</RootNamespace>
+    <AssemblyName>Quahicle</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -46,7 +46,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\*.cs" />
+    <Compile Include="src\ArrowVehicle.cs" />
+    <Compile Include="src\BasicVehicleHUD.cs" />
+    <Compile Include="src\CustomDraw.cs" />
+    <Compile Include="src\IVehicleHUD.cs" />
+    <Compile Include="src\Quahicle.cs" />
+    <Compile Include="src\QuahicleCore.cs" />
+    <Compile Include="src\TestVehicle.cs" />
+    <Compile Include="src\VehicleBase.cs" />
+    <Compile Include="src\VehicleSpawner.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

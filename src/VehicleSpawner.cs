@@ -12,6 +12,7 @@ namespace DuckGame.Quahicle
         public StateBinding _vehicleBinding = new StateBinding("_vehicle");
         private bool _spawned = false;
         public StateBinding _spawnedBinding = new StateBinding("_spawned");
+        public StateBinding containsBinding = new StateBinding("contains");
         public Type contains { get; set; }
 
         public VehicleSpawner(float xval, float yval) : base(xval, yval)
@@ -41,11 +42,6 @@ namespace DuckGame.Quahicle
                 return;
             }
 
-            // string vehicleName = this.GetVehicle().VehicleName;
-            // float offsetX = Graphics.GetStringWidth(vehicleName) / 2;
-            // Vec2 posText = this.position + new Vec2(-offsetX, -this.height);
-            // Vec2 posSprite = posText + new Vec2(0f, -6f);
-            // Graphics.DrawFancyString(vehicleName, posText, Color.White);
 
             // TODO : Find how to centre the text properly. Meanwhile only preview is visible.
 
@@ -63,7 +59,6 @@ namespace DuckGame.Quahicle
             {
 
                 this._spawned = true;
-                this.graphic.color = Color.White;
 
                 this.SpawnVehicle(this.duck);
 
@@ -81,6 +76,7 @@ namespace DuckGame.Quahicle
                 this._vehicle = this.GetRandomVehicle();
             else if (this._vehicle == null)
                 this._vehicle = Editor.CreateThing(contains) as VehicleBase;
+            this._vehicle = new ArrowVehicle();
 
             return this._vehicle;
         }
@@ -119,6 +115,7 @@ namespace DuckGame.Quahicle
             if (isServerForObject)
             {
                 VehicleBase v = this.GetVehicle();
+                if (v == null) return;
                 v.position = this.position + new Vec2(0, -v.height);
 
                 v.SetPilot(pilot);
@@ -126,6 +123,12 @@ namespace DuckGame.Quahicle
 
                 v.Mount();
             }
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            if(!this._spawned) this.graphic.color = Color.White;
         }
 
         // TODO: Fix this setting not affecting spawned vehicle nor being saved

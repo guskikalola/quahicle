@@ -45,8 +45,8 @@ namespace DuckGame.Quahicle
         public Duck GetCurrentDuck()
         {
             Duck duck;
-            if (DuckNetwork.active)
-                duck = DuckNetwork.localProfile?.duck;
+            if (DuckNetwork.active && DuckNetwork.localProfile != null)
+                duck = DuckNetwork.localProfile.duck;
             else
                 duck = Profiles.DefaultPlayer1.duck;
             return duck;
