@@ -25,6 +25,7 @@ namespace DuckGame.Quahicle
         public float FireCooldown { get; protected set; }
         public float FireCooldownTimer { get; protected set; }
         public bool DeathControl { get; protected set; }
+        public bool HidePilot { get; protected set; }
         public float MountingDistance { get; protected set; }
         public StateBinding boostCooldownTimerBinding = new StateBinding("FireCooldownTimer");
         public IVehicleHUD VehicleHUD;
@@ -55,6 +56,7 @@ namespace DuckGame.Quahicle
             this.FireCooldownTimer = 0f;
             this.DeathControl = false;
             this.MountingDistance = 15.0f;
+            this.HidePilot = false;
 
             this.layer = Layer.Blocks;
             this.isStatic = true;
@@ -123,12 +125,12 @@ namespace DuckGame.Quahicle
 
             this.Pilot.moveLock = true;
             this.Pilot.CancelFlapping();
+            if(this.HidePilot) this.Pilot.visible = false;
             this.OnMount();
         }
 
         public virtual void OnMount()
         {
-
         }
 
         public virtual void UnMount()
@@ -140,6 +142,7 @@ namespace DuckGame.Quahicle
 
             this.Pilot.moveLock = false;
             this.Pilot.vSpeed += -1f;
+            if(this.HidePilot) this.Pilot.visible = true;
 
             this.OnUnMount();
         }
@@ -166,12 +169,23 @@ namespace DuckGame.Quahicle
                     this.SetPilot(candidate);
             }
 
-            if(this.Pilot != null && this.Pilot.dead && !this._deathEventTriggered)
+            if (this.Pilot != null && this.Pilot.dead && !this._deathEventTriggered)
                 this.PilotDeath();
 
             UpdatePilot();
             UpdateInput();
+            UpdateVehicleGraphic();
 
+            // Handle fire cooldown timer
+            if (this.FireCooldownTimer > 0f)
+                this.FireCooldownTimer -= 0.03f;
+
+            if (this.FireCooldownTimer <= 0f) this.FireCooldownTimer = 0f;
+
+        }
+
+        public virtual void UpdateVehicleGraphic()
+        {
             // Flip graphic to match direction and prevent rendering upside down
             if (this.DirectionAngle > 90f && this.DirectionAngle < 270f)
                 this.graphic.flipV = true;
@@ -180,13 +194,6 @@ namespace DuckGame.Quahicle
 
             // Update current vehicle's angle with direction angle
             this.angleDegrees = this.DirectionAngle;
-
-            // Handle fire cooldown timer
-            if (this.FireCooldownTimer > 0f)
-                this.FireCooldownTimer -= 0.03f;
-
-            if (this.FireCooldownTimer <= 0f) this.FireCooldownTimer = 0f;
-
         }
 
         public virtual void UpdatePilot()
@@ -317,7 +324,7 @@ namespace DuckGame.Quahicle
             }
         }
 
-        public virtual void Fire()
+        public void Fire()
         {
             if (this.FireCooldownTimer <= 0f)
             {
