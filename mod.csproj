@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DuckGame">
-      <HintPath>/home/guskikalola/.local/share/Steam/steamapps/common/Duck Game/DuckGame.exe</HintPath>
+      <HintPath>/home/guskikalola/DGRebuilt/DuckGame.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
