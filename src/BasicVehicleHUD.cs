@@ -50,28 +50,48 @@ namespace DuckGame.Quahicle
         public void DrawVehicleStatus()
         {
             if (!this._vehicle.Mounted) return;
+            // Vehicle name
+            string vehicleName = this._vehicle.VehicleName;
+            float vehicleNameWidth = _font.GetWidth(vehicleName);
+            Vec2 vehicleNamePos = new Vec2((MonoMain.screenWidth / 2) - vehicleNameWidth / 2, 30);
+            _font.Draw(vehicleName, vehicleNamePos, Color.White);
             // Vehicle health
+            float vehicleHealth = this._vehicle.Health;
+            float vehicleMaxHealth = this._vehicle.MaxHealth;
+            string vehicleHealthText = string.Format("{0}/{1}", vehicleHealth, vehicleMaxHealth);
+            float vehicleHealthTextWidth = _font.GetWidth(vehicleHealthText);
+            float vehicleHealthTextHeight = _font.height;
+            Vec2 vehicleHealthBarSize = new Vec2(120f * this.HUDScale,12f * this.HUDScale);
+            Vec2 vehicleHealthBarPos = new Vec2((MonoMain.screenWidth / 2) - vehicleHealthBarSize.x/2, 50);
+            Vec2 vehicleHealthTextPos = vehicleHealthBarPos + new Vec2((vehicleHealthBarSize.x/2) - vehicleHealthTextWidth/2,(vehicleHealthBarSize.y/2) - vehicleHealthTextHeight/2);
+            // Health bar outline 
+            Graphics.DrawRect(vehicleHealthBarPos, vehicleHealthBarPos + vehicleHealthBarSize, Color.White, filled: false);
+            // Health bar filling ( goes from 100% width to 0% width of the bar )
+            if(vehicleMaxHealth == 0) vehicleMaxHealth = 1;
+            float percHealth = vehicleHealth / vehicleMaxHealth;
+            Graphics.DrawRect(vehicleHealthBarPos, vehicleHealthBarPos + vehicleHealthBarSize * new Vec2(percHealth, 1), Color.White, filled: true);
+            _font.Draw(vehicleHealthText, vehicleHealthTextPos, Color.Gray);
 
             // Vehicle fire cooldown
             float cd = this._vehicle.FireCooldownTimer;
             float cdMax = this._vehicle.FireCooldown;
             if (cdMax == 0) cdMax = 1;
-            float perc = cd / cdMax;
+            float percCd = cd / cdMax;
             if (cd > 0f)
             {
                 float centreX = MonoMain.screenWidth / 2;
-                float centreY = MonoMain.screenHeight / 2;
+                float centreY = MonoMain.screenHeight - 30;
 
                 string cooldownTxt = "Recharging...";
                 float txtWidth = _font.GetWidth(cooldownTxt);
-                _font.Draw(cooldownTxt, new Vec2(centreX, centreY) + new Vec2((-txtWidth/2)  * this.HUDScale,-15f  * this.HUDScale), Color.White, input: Quahicle.Core.GetCurrentDuck().inputProfile);
+                _font.Draw(cooldownTxt, new Vec2(centreX, centreY) + new Vec2((-txtWidth / 2) * this.HUDScale, -15f * this.HUDScale), Color.White, input: Quahicle.Core.GetCurrentDuck().inputProfile);
 
-                Vec2 offset1 = new Vec2(-txtWidth  * this.HUDScale, 5f  * this.HUDScale);
-                Vec2 offset2 = new Vec2(txtWidth  * this.HUDScale, -5f  * this.HUDScale);
+                Vec2 offset1 = new Vec2(-txtWidth * this.HUDScale, 5f * this.HUDScale);
+                Vec2 offset2 = new Vec2(txtWidth * this.HUDScale, -5f * this.HUDScale);
                 // Cooldown bar outline 
                 Graphics.DrawRect(new Vec2(centreX, centreY) + offset1, new Vec2(centreX, centreY) + offset2, Color.White, filled: false);
                 // Cooldown bar filling ( goes from 100% width to 0% width of the bar )
-                Graphics.DrawRect(new Vec2(centreX, centreY) + offset1, new Vec2(centreX + offset1.x, centreY) + offset2 * new Vec2(2*perc, 1), Color.White, filled: true);
+                Graphics.DrawRect(new Vec2(centreX, centreY) + offset1, new Vec2(centreX + offset1.x, centreY) + offset2 * new Vec2(2 * percCd, 1), Color.White, filled: true);
             }
 
         }

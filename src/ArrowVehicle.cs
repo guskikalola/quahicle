@@ -12,7 +12,6 @@ namespace DuckGame.Quahicle
         private readonly float boostSpeed = 6f;
         public ArrowVehicle() : base()
         {
-            this.VehicleName = "Arrow Vehicle";
             this._sprite = new SpriteMap(GetPath("sprites/arrow"), 32, 8, false);
             this.graphic = (Sprite)this._sprite;
             this.graphic.center = new Vec2(this.graphic.width / 2, this.graphic.height / 2);
@@ -20,6 +19,9 @@ namespace DuckGame.Quahicle
             this.collisionOffset = new Vec2(-16f, -3f);
             this.collisionSize = new Vec2(32f, 8f);
 
+            this.VehicleName = "Arrow Vehicle";
+            this.MaxHealth = 5;
+            this.Health = 5;
             this.CockpitPosition = new Vec2(0, -17f);
 
             this.JumpPower = 0f;
@@ -29,7 +31,6 @@ namespace DuckGame.Quahicle
             this.gravMultiplier = 0f;
 
             this.FireCooldown = 10f;
-
             this.FireCooldownTimer = this.FireCooldown;
 
             this.VehicleHUD = new BasicVehicleHUD(this);

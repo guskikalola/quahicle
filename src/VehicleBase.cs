@@ -3,6 +3,7 @@ namespace DuckGame.Quahicle
     public abstract class VehicleBase : PhysicsObject
     {
         public float Health { get; protected set; }
+        public float MaxHealth { get; protected set; }
         public string VehicleName { get; protected set; }
         public float Speed { get; protected set; }
         public Duck Pilot { get; protected set; }
@@ -28,11 +29,14 @@ namespace DuckGame.Quahicle
         public StateBinding boostCooldownTimerBinding = new StateBinding("FireCooldownTimer");
         public IVehicleHUD VehicleHUD;
         protected BitmapFont TargetFont;
+        private bool _deathEventTriggered = false;
+        public StateBinding deathTriggeredBinding = new StateBinding("_deathEventTriggered");
 
         protected VehicleBase(float xval, float yval) : base(xval, yval)
         {
 
             this.Health = 1f;
+            this.MaxHealth = 1f;
             this.VehicleName = "Vehicle Base";
             this.Speed = 1f;
             this.Pilot = null;
@@ -101,6 +105,7 @@ namespace DuckGame.Quahicle
             {
                 Quahicle.Core.RemoveFromEveryVehicle(d);
                 this.Pilot = d;
+                this._deathEventTriggered = false;
                 Thing.Fondle(this, d.connection);
             }
 
@@ -153,8 +158,6 @@ namespace DuckGame.Quahicle
         {
             base.Update();
 
-            this.VehicleHUD.SetScale(1);
-
             // Search for pilot if none
             if (this.Pilot == null)
             {
@@ -162,6 +165,9 @@ namespace DuckGame.Quahicle
                 if (candidate != null && candidate.inputProfile.Down("QUACK"))
                     this.SetPilot(candidate);
             }
+
+            if(this.Pilot != null && this.Pilot.dead && !this._deathEventTriggered)
+                this.PilotDeath();
 
             UpdatePilot();
             UpdateInput();
@@ -323,6 +329,17 @@ namespace DuckGame.Quahicle
         public virtual void OnFire()
         {
 
+        }
+
+        public virtual void PilotDeath()
+        {
+            this._deathEventTriggered = true;
+            this.OnPilotDeath();
+        }
+
+        public virtual void OnPilotDeath()
+        {
+            this.RemovePilot();
         }
 
         public override void Impact(MaterialThing with, ImpactedFrom from, bool solidImpact)
