@@ -26,6 +26,8 @@ namespace DuckGame.Quahicle
         public float FireCooldownTimer { get; protected set; }
         public bool DeathControl { get; protected set; }
         public bool HidePilot { get; protected set; }
+        public bool MovementLock { get; protected set; }
+        public StateBinding movementLockBinding = new StateBinding("MovementLock");
         public float MountingDistance { get; protected set; }
         public StateBinding boostCooldownTimerBinding = new StateBinding("FireCooldownTimer");
         public IVehicleHUD VehicleHUD;
@@ -86,7 +88,7 @@ namespace DuckGame.Quahicle
             get
             {
                 float rads = Maths.DegToRad(this.DirectionAngle);
-                return new Vec2(Maths.FastCos(rads), Maths.FastSin(rads));
+                return new Vec2((float)System.Math.Cos(rads), (float)System.Math.Sin(rads));
             }
         }
 
@@ -125,7 +127,7 @@ namespace DuckGame.Quahicle
 
             this.Pilot.moveLock = true;
             this.Pilot.CancelFlapping();
-            if(this.HidePilot) this.Pilot.visible = false;
+            if (this.HidePilot) this.Pilot.visible = false;
             this.OnMount();
         }
 
@@ -142,7 +144,7 @@ namespace DuckGame.Quahicle
 
             this.Pilot.moveLock = false;
             this.Pilot.vSpeed += -1f;
-            if(this.HidePilot) this.Pilot.visible = true;
+            if (this.HidePilot) this.Pilot.visible = true;
 
             this.OnUnMount();
         }
@@ -186,14 +188,19 @@ namespace DuckGame.Quahicle
 
         public virtual void UpdateVehicleGraphic()
         {
+            // Update current vehicle's angle with direction angle
+            Vec2 directionVector = this.DirectionVector;
+            if (this.LockV) { directionVector.y = 0; }
+            if (this.LockH) { directionVector.x = 0; }
+            float rads = (float)System.Math.Atan2(directionVector.y, directionVector.x);
+            float degs = Maths.RadToDeg(rads);
+            this.angleDegrees = degs;
+
             // Flip graphic to match direction and prevent rendering upside down
-            if (this.DirectionAngle > 90f && this.DirectionAngle < 270f)
+            if (degs > 90f && degs < 270f)
                 this.graphic.flipV = true;
             else
                 this.graphic.flipV = false;
-
-            // Update current vehicle's angle with direction angle
-            this.angleDegrees = this.DirectionAngle;
         }
 
         public virtual void UpdatePilot()
@@ -250,24 +257,26 @@ namespace DuckGame.Quahicle
             if (i.Down("SHOOT"))
                 this.Fire();
 
+            this.MovementLock = i.Down("STRAFE");
+
             // Handle direction
             bool right = false;
             bool left = false;
             bool up = false;
             bool down = false;
-            if (!this.LockH && ((double)i.leftStick.x > (double)0.4f || i.Down("RIGHT")))
+            if ((double)i.leftStick.x > (double)0.4f || i.Down("RIGHT"))
             {
                 right = true;
                 this.Pilot.offDir = (sbyte)1;
             }
-            if (!this.LockH && ((double)i.leftStick.x < -(double)0.4f || i.Down("LEFT")))
+            if ((double)i.leftStick.x < -(double)0.4f || i.Down("LEFT"))
             {
                 left = true;
                 this.Pilot.offDir = (sbyte)-1;
             }
-            if (!this.LockV && ((double)i.leftStick.y > (double)0.4f || i.Down("UP")))
+            if ((double)i.leftStick.y > (double)0.4f || i.Down("UP"))
                 up = true;
-            if (!this.LockV && ((double)i.leftStick.y < -(double)0.4f || i.Down("DOWN")))
+            if ((double)i.leftStick.y < -(double)0.4f || i.Down("DOWN"))
                 down = true;
 
             if (up)
@@ -311,9 +320,12 @@ namespace DuckGame.Quahicle
 
         public virtual void Accelerate()
         {
+            if (this.MovementLock == true)
+                return;
+
             Vec2 speedAdd = this.DirectionVector * Speed * AccelerationMul;
-            this.hSpeed += speedAdd.x;
-            this.vSpeed += speedAdd.y;
+            if (!this.LockH) this.hSpeed += speedAdd.x;
+            if (!this.LockV) this.vSpeed += speedAdd.y;
         }
 
         public virtual void Jump()

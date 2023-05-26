@@ -23,6 +23,7 @@ namespace DuckGame.Quahicle
             this.Controls.Add("@DOWN@ Move down", !this._vehicle.LockV);
             this.Controls.Add("@RAGDOLL@ Unmount", true);
             this.Controls.Add("@SHOOT@ Fire", this._vehicle.FireCooldown > 0f);
+            this.Controls.Add("@STRAFE@ Lock movement", true);
         }
 
         public void DrawControls()
