@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: AssemblyDescription("Quack + Vehicle: Vehicles in Duckgame!")]
 
 // The mod's version
-[assembly: AssemblyVersion("1.0.3.1")]
+[assembly: AssemblyVersion("1.0.4.0")]
 
 namespace DuckGame.Quahicle
 {
