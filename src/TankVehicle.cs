@@ -55,7 +55,7 @@ namespace DuckGame.Quahicle
         private void CalculateWorldGunPositionRotated()
         {
             float degs = Maths.Clamp(this.DirectionAngle, 180, 360);
-            if(this.DirectionAngle == 0) degs = 0;
+            if (this.DirectionAngle == 0) degs = 0;
 
             this.WorldGunPositionRotated = this.GetWorldGunPosition().Rotate(Maths.DegToRad(degs), this.position);
         }
@@ -81,19 +81,16 @@ namespace DuckGame.Quahicle
         {
             Vec2 bulletPos = this.WorldGunPositionRotated;
             Bullet b = new Bullet(bulletPos.x, bulletPos.y, this._ammoType, -this.DirectionAngle);
-            this.Fondle(b);
             Level.Add(b);
         }
 
         public override void OnFire()
         {
-            if (this.isServerForObject)
-            {
-                SFX.Play("explode");
-                this.SpawnParticles();
-                RumbleManager.AddRumbleEvent(this.position, new RumbleEvent(RumbleIntensity.Heavy, RumbleDuration.Short, RumbleFalloff.Medium, RumbleType.Gameplay));
-                if (this.isServerForObject) this.FireMissile();
-            }
+            SFX.Play("explode");
+            this.SpawnParticles();
+            RumbleManager.AddRumbleEvent(this.position, new RumbleEvent(RumbleIntensity.Heavy, RumbleDuration.Short, RumbleFalloff.Medium, RumbleType.Gameplay));
+            if (!(this.isServerForObject)) return;
+            this.FireMissile();
         }
 
         public override void Update()

@@ -40,7 +40,6 @@ namespace DuckGame.Quahicle
             Vec2 vec = Maths.AngleToVec(Maths.DegToRad(-this.DirectionAngle));
             if (duck.ragdoll == null)
             {
-                this.Fondle(duck);
                 IPlatform p = Level.CheckRay<IPlatform>(this.position, this.position + new Vec2((this.DirectionVector.x >= 0.5 ? 1 : -1) * 50f, 0));
                 if (p != null) duck.Kill(new DTImpale(this));
                 else
@@ -54,6 +53,7 @@ namespace DuckGame.Quahicle
         public override void Update()
         {
             base.Update();
+            if(!isServerForObject) return;
             foreach (Ragdoll r in Level.CheckCircleAll<Ragdoll>(this.position, 45f))
             {
                 if (!r._duck.dead) r.Unragdoll();

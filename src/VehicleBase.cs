@@ -32,8 +32,8 @@ namespace DuckGame.Quahicle
         public StateBinding boostCooldownTimerBinding = new StateBinding("FireCooldownTimer");
         public IVehicleHUD VehicleHUD;
         protected BitmapFont TargetFont;
-        private bool _deathEventTriggered = false;
-        public StateBinding deathTriggeredBinding = new StateBinding("_deathEventTriggered");
+        public bool DeathEventTriggered { get; protected set; }
+        public StateBinding deathTriggeredBinding = new StateBinding("DeathEventTriggered");
 
         protected VehicleBase(float xval, float yval) : base(xval, yval)
         {
@@ -59,6 +59,7 @@ namespace DuckGame.Quahicle
             this.DeathControl = false;
             this.MountingDistance = 15.0f;
             this.HidePilot = false;
+            this.DeathEventTriggered  = false;
 
             this.layer = Layer.Blocks;
             this.isStatic = true;
@@ -109,7 +110,7 @@ namespace DuckGame.Quahicle
             {
                 Quahicle.Core.RemoveFromEveryVehicle(d);
                 this.Pilot = d;
-                this._deathEventTriggered = false;
+                this.DeathEventTriggered = false;
                 Thing.Fondle(this, d.connection);
             }
 
@@ -171,7 +172,7 @@ namespace DuckGame.Quahicle
                     this.SetPilot(candidate);
             }
 
-            if (this.Pilot != null && this.Pilot.dead && !this._deathEventTriggered)
+            if (this.Pilot != null && this.Pilot.dead && !this.DeathEventTriggered)
                 this.PilotDeath();
 
             UpdatePilot();
@@ -341,6 +342,8 @@ namespace DuckGame.Quahicle
             if (this.FireCooldownTimer <= 0f)
             {
                 this.FireCooldownTimer = this.FireCooldown;
+                Send.Message(new NMVehicleFired(this.Pilot));
+
                 this.OnFire();
             }
         }
@@ -352,7 +355,7 @@ namespace DuckGame.Quahicle
 
         public virtual void PilotDeath()
         {
-            this._deathEventTriggered = true;
+            this.DeathEventTriggered = true;
             this.OnPilotDeath();
         }
 
